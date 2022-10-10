@@ -21,7 +21,7 @@ public class BookListMainActivity extends AppCompatActivity {
 
     public static final int menu_id_add = 1;
     public static final int menu_id_delete = 2;
-    private ArrayList<String> mainStringSet;
+    private ArrayList<Book> mainStringSet;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,15 +33,21 @@ public class BookListMainActivity extends AppCompatActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerViewMain.setLayoutManager(linearLayoutManager);
 
-        mainStringSet=new ArrayList<String>();
-        for(int i=0;i<20;i++){
-            mainStringSet.add("item "+i);
-        }
+        mainStringSet=new ArrayList<Book>();
+
+        mainStringSet.add(new Book("软件项目管理案例教程（第4版）", R.drawable.book_2));
+        mainStringSet.add(new Book("创新工程实践", R.drawable.book_no_name));
+        mainStringSet.add(new Book("信息安全数学基础（第2版）", R.drawable.book_1));
+
         //String []mainDataSet= new String[]{"item 1","item 2","item 3","item 4","item 5"};
         //设置数据接收渲染器
         MainRecycleViewAdapter mainRecycleViewAdapter=new MainRecycleViewAdapter(mainStringSet);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
 
+    }
+
+    public ArrayList<Book> getListBooks(){
+        return mainStringSet;
     }
 
     @Override
@@ -63,7 +69,7 @@ public class BookListMainActivity extends AppCompatActivity {
     //adapter重写三个方法，并且还得在内部类设置viewholder类
     public class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
         //private String[]localDataset;
-        private ArrayList<String>localDataset;
+        private ArrayList<Book>localDataset;
         //创建viewholder，针对每一个item生成一个viewholder,相当一个容器，里面的东西自定义
         public  class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
             private final TextView textView;
@@ -72,8 +78,8 @@ public class BookListMainActivity extends AppCompatActivity {
             public ViewHolder(View view) {
                 super(view);
                 //找到传进来的大view中的小构件
-                imageView=view.findViewById(R.id.imageView_item_image);
-                textView = view.findViewById(R.id.textView_item_caption);
+                imageView=view.findViewById(R.id.image_view_book_cover);
+                textView = view.findViewById(R.id.text_view_book_title);
 
                 //设置这个holder的监听事件
                 view.setOnCreateContextMenuListener(this);
@@ -93,7 +99,7 @@ public class BookListMainActivity extends AppCompatActivity {
                 contextMenu.add(0, menu_id_delete,getAdapterPosition(),"delete"+getAdapterPosition());
             }
         }
-        public MainRecycleViewAdapter(ArrayList<String> dataset){
+        public MainRecycleViewAdapter(ArrayList<Book> dataset){
             localDataset=dataset;
         }
         @NonNull
@@ -108,8 +114,8 @@ public class BookListMainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //holder设置数据
-            holder.getTextView().setText(localDataset.get(position));
-            holder.getImageView().setImageResource(position% menu_id_delete ==menu_id_add?R.drawable.clock:R.drawable.pencils);
+            holder.getTextView().setText(localDataset.get(position).getTitle());
+            holder.getImageView().setImageResource(localDataset.get(position).getCoverResourceId());
         }
 
         @Override
@@ -118,6 +124,19 @@ public class BookListMainActivity extends AppCompatActivity {
         }
     }
 
-
+    public class Book{
+        private String title;
+        private int image_R_id;
+        public Book(String t, int id){
+            title=t;
+            image_R_id=id;
+        }
+        String getTitle(){
+            return title;
+        }
+        int getCoverResourceId(){
+            return image_R_id;
+        }
+    }
 
 }
