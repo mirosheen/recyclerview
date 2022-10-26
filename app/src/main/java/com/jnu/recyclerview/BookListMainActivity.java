@@ -1,10 +1,12 @@
 package com.jnu.recyclerview;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -15,13 +17,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jnu.recyclerview.data.shopItem;
+
 import java.util.ArrayList;
 
 public class BookListMainActivity extends AppCompatActivity {
 
     public static final int menu_id_add = 1;
     public static final int menu_id_delete = 2;
-    private ArrayList<String> mainStringSet;
+    public static final int menu_id_update = 3;
+    private ArrayList<com.jnu.recyclerview.data.shopItem> shopItems;
+    private MainRecycleViewAdapter mainRecycleViewAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,13 +40,13 @@ public class BookListMainActivity extends AppCompatActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerViewMain.setLayoutManager(linearLayoutManager);
 
-        mainStringSet=new ArrayList<String>();
+        shopItems=new ArrayList<shopItem>();
         for(int i=0;i<20;i++){
-            mainStringSet.add("item "+i);
+            shopItems.add(new shopItem("item"+i,Math.random()*10,i% 2 ==0?R.drawable.clock:R.drawable.pencils));
         }
         //String []mainDataSet= new String[]{"item 1","item 2","item 3","item 4","item 5"};
         //设置数据接收渲染器
-        MainRecycleViewAdapter mainRecycleViewAdapter=new MainRecycleViewAdapter(mainStringSet);
+        mainRecycleViewAdapter = new MainRecycleViewAdapter(shopItems);
         recyclerViewMain.setAdapter(mainRecycleViewAdapter);
 
     }
@@ -50,10 +57,33 @@ public class BookListMainActivity extends AppCompatActivity {
         switch (item.getItemId())
         {
             case menu_id_add:
-                Toast.makeText(this,"item add "+ item.getOrder()+" clicked",Toast.LENGTH_LONG).show();
+                //在对应的位置添加一个，然后在通知更新器更新
+                shopItems.add(item.getOrder(),new shopItem("added"+item.getOrder(),Math.random()*10,R.drawable.ic_launcher_background));
+                mainRecycleViewAdapter.notifyItemInserted(item.getOrder());
                 break;
             case menu_id_delete:
-                Toast.makeText(this,"item delete "+ item.getOrder()+" clicked",Toast.LENGTH_LONG).show();
+                AlertDialog alertDialog=new AlertDialog.Builder(this)
+                        .setTitle(R.string.confirmation)
+                        .setMessage(R.string.sure_to_delete_item)
+                        .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                shopItems.remove(item.getOrder());
+                                mainRecycleViewAdapter.notifyItemRemoved(item.getOrder());
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+                break;
+            case menu_id_update:
+                shopItems.get(item.getOrder()).setTitle(getString(R.string.update_title));
+                mainRecycleViewAdapter.notifyItemChanged(item.getOrder());
                 break;
 
         }
@@ -63,23 +93,28 @@ public class BookListMainActivity extends AppCompatActivity {
     //adapter重写三个方法，并且还得在内部类设置viewholder类
     public class MainRecycleViewAdapter extends RecyclerView.Adapter<MainRecycleViewAdapter.ViewHolder> {
         //private String[]localDataset;
-        private ArrayList<String>localDataset;
+        private ArrayList<shopItem> localDataset;
         //创建viewholder，针对每一个item生成一个viewholder,相当一个容器，里面的东西自定义
         public  class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
-            private final TextView textView;
+            private final TextView textViewTitle;
+            private final TextView textViewPrice;
             private final ImageView imageView;
 
             public ViewHolder(View view) {
                 super(view);
                 //找到传进来的大view中的小构件
                 imageView=view.findViewById(R.id.imageView_item_image);
-                textView = view.findViewById(R.id.textView_item_caption);
+                textViewTitle = view.findViewById(R.id.textView_item_caption);
+                textViewPrice = view.findViewById(R.id.textView_item_price);
 
                 //设置这个holder的监听事件
                 view.setOnCreateContextMenuListener(this);
             }
-            public TextView getTextView() {
-                return textView;
+            public TextView getTextViewPrice() {
+                return textViewPrice;
+            }
+            public TextView getTextViewTitle() {
+                return textViewTitle;
             }
 
             public ImageView getImageView() {
@@ -91,9 +126,10 @@ public class BookListMainActivity extends AppCompatActivity {
                 //监听事件的菜单选项样式，那个选项，哪一个item，显示信息
                 contextMenu.add(0,menu_id_add,getAdapterPosition(),"add"+getAdapterPosition());
                 contextMenu.add(0, menu_id_delete,getAdapterPosition(),"delete"+getAdapterPosition());
+                contextMenu.add(0, menu_id_update,getAdapterPosition(),"update"+getAdapterPosition());
             }
         }
-        public MainRecycleViewAdapter(ArrayList<String> dataset){
+        public MainRecycleViewAdapter(ArrayList<shopItem> dataset){
             localDataset=dataset;
         }
         @NonNull
@@ -108,8 +144,10 @@ public class BookListMainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             //holder设置数据
-            holder.getTextView().setText(localDataset.get(position));
-            holder.getImageView().setImageResource(position% menu_id_delete ==menu_id_add?R.drawable.clock:R.drawable.pencils);
+            holder.getTextViewTitle().setText(localDataset.get(position).getTitle());
+            holder.getTextViewPrice().setText(localDataset.get(position).getPrice().toString());
+            holder.getImageView().setImageResource(localDataset.get(position).getResourceId());
+
         }
 
         @Override
