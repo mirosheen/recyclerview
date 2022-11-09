@@ -28,6 +28,8 @@ public class BookListMainActivity extends AppCompatActivity {
                 case 0:
                     return ShopItemFragment.newInstance();
                 case 1:
+                    return BaiduMapFragment.newInstance();
+                case 2:
                     return BrowserFragment.newInstance();
             }
             return ShopItemFragment.newInstance();
@@ -35,7 +37,7 @@ public class BookListMainActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return 2;
+            return 3;
         }
     }
     @Override
@@ -56,6 +58,9 @@ public class BookListMainActivity extends AppCompatActivity {
                         tab.setText(R.string.tab_caption_1_shopping);
                         break;
                     case 1:
+                        tab.setText("map");
+                        break;
+                    case 2:
                         tab.setText(R.string.tab_caption_2_browser);
                         break;
                 }
